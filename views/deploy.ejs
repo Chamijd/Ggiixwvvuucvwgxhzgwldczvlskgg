@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHAMA-MD Heroku Deployer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    :root {
+      --heroku-purple: #6762a6;
+      --heroku-dark: #464775;
+      --success: #10b981;
+      --danger: #ef4444;
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --text: #1f2937;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .heroku-header {
+      background: var(--heroku-dark);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .heroku-header img {
+      height: 30px;
+      margin-right: 10px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    .heroku-panel {
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .panel-header {
+      background: var(--heroku-purple);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+    
+    .panel-header i {
+      margin-right: 10px;
+    }
+    
+    .panel-body {
+      padding: 25px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--heroku-dark);
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--heroku-purple);
+      box-shadow: 0 0 0 3px rgba(103, 98, 166, 0.2);
+    }
+    
+    .btn-heroku {
+      background: var(--heroku-purple);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-heroku:hover {
+      background: var(--heroku-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+    
+    .btn-heroku i {
+      margin-right: 8px;
+    }
+    
+    .alert {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.5s;
+    }
+    
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+    
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+    
+    .deploy-status {
+      text-align: center;
+      padding: 30px;
+      display: none;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(103, 98, 166, 0.2);
+      border-radius: 50%;
+      border-top: 4px solid var(--heroku-purple);
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    .logs-container {
+      background: #1e1e1e;
+      color: #f1f1f1;
+      border-radius: 5px;
+      padding: 15px;
+      font-family: monospace;
+      height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .log-entry {
+      margin-bottom: 5px;
+      line-height: 1.5;
+    }
+    
+    .success-panel {
+      background: rgba(16, 185, 129, 0.05);
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+      border-left: 4px solid var(--success);
+      display: none;
+    }
+    
+    .info-item {
+      margin-bottom: 15px;
+    }
+    
+    .info-label {
+      font-weight: 500;
+      color: var(--heroku-dark);
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="heroku-header">
+    <img src="https://www.herokucdn.com/favicon.ico" alt="Heroku">
+    <span>CHAMA-MD Heroku Deployer</span>
+  </div>
+  
+  <div class="container">
+    <% if (message) { %>
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> <%= message %>
+      </div>
+    <% } %>
+    
+    <% if (error) { %>
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> <%= error %>
+      </div>
+    <% } %>
+    
+    <div class="heroku-panel animate__animated animate__fadeIn">
+      <div class="panel-header">
+        <i class="fas fa-rocket"></i> Deploy CHAMA-MD to Heroku
+      </div>
+      <div class="panel-body">
+        <form id="deployForm">
+          <div class="form-group">
+            <label for="appName">Heroku App Name</label>
+            <input type="text" id="appName" name="appName" required placeholder="my-chama-bot">
+          </div>
+          
+          <div class="form-group">
+            <label for="sessionId">WhatsApp Session ID</label>
+            <input type="text" id="sessionId" name="sessionId" required placeholder="Paste your session ID">
+          </div>
+          
+          <button type="submit" class="btn-heroku">
+            <i class="fas fa-cloud-upload-alt"></i> Deploy to Heroku
+          </button>
+        </form>
+        
+        <div id="deployStatus" class="deploy-status">
+          <div class="spinner"></div>
+          <p>Deploying your CHAMA-MD bot to Heroku...</p>
+        </div>
+        
+        <div id="logsContainer" class="logs-container">
+          <div id="logsContent"></div>
+        </div>
+        
+        <div id="successPanel" class="success-panel">
+          <div class="info-item">
+            <div class="info-label">App URL</div>
+            <div id="appUrl" class="info-value">https://<span id="appNameDisplay"></span>.herokuapp.com</div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Heroku Dashboard</div>
+            <div id="dashboardUrl" class="info-value">https://dashboard.heroku.com/apps/<span id="dashboardAppName"></span></div>
+          </div>
+          
+          <div class="info-item">
+            <div class="info-label">Build Logs</div>
+            <div id="buildLogsUrl" class="info-value"></div>
+          </div>
+          
+          <button id="viewLogsBtn" class="btn-heroku" style="margin-top: 20px;">
+            <i class="fas fa-scroll"></i> View Deployment Logs
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Form submission
+      $('#deployForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const appName = $('#appName').val();
+        const sessionId = $('#sessionId').val();
+        
+        if (!appName || !sessionId) {
+          alert('Please fill in all fields');
+          return;
+        }
+        
+        // Show deploying status
+        $('#deployForm').addClass('hidden');
+        $('#deployStatus').show();
+        $('#logsContainer').show();
+        
+        // Simulate logs streaming
+        const fakeLogs = [
+          `Creating Heroku app: ${appName}`,
+          'Setting config variables...',
+          'Linking GitHub repository: https://github.com/CHMA2009/-CHAMA-MD/',
+          'Starting build process...',
+          'Installing dependencies...',
+          'npm install whatsapp-web.js qrcode-terminal',
+          'Building CHAMA-MD bot...',
+          'Starting WhatsApp client...',
+          'Scan QR code to authenticate...'
+        ];
+        
+        let counter = 0;
+        const logInterval = setInterval(() => {
+          if (counter < fakeLogs.length) {
+            $('#logsContent').append(`<div class="log-entry">${fakeLogs[counter]}</div>`);
+            $('#logsContent').scrollTop($('#logsContent')[0].scrollHeight);
+            counter++;
+          } else {
+            clearInterval(logInterval);
+            // Show success panel
+            $('#deployStatus').hide();
+            $('#successPanel').show();
+            $('#appNameDisplay').text(appName);
+            $('#dashboardAppName').text(appName);
+            $('#buildLogsUrl').text(`https://dashboard.heroku.com/apps/${appName}/activity`);
+          }
+        }, 1500);
+        
+        // Actual deployment
+        $.ajax({
+          url: '/deploy',
+          method: 'POST',
+          data: {
+            appName: appName,
+            sessionId: sessionId
+          },
+          success: function(response) {
+            // Handled by the redirect
+          },
+          error: function(xhr) {
+            clearInterval(logInterval);
+            $('#logsContent').append('<div class="log-entry" style="color: #ef4444;">Deployment failed!</div>');
+            $('#logsContent').append(`<div class="log-entry" style="color: #ef4444;">${xhr.responseJSON?.error || 'Unknown error'}</div>`);
+          }
+        });
+      });
+      
+      // View logs button
+      $('#viewLogsBtn').on('click', function() {
+        $('#logsContainer').toggle();
+      });
+    });
+  </script>
+</body>
+</html>
